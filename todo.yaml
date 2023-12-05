@@ -4,7 +4,6 @@
     tasks.
 
   subtasks:
-
   - task: Users can add new tasks from CLI
     status: done
     version: release-1.0
@@ -30,45 +29,38 @@
     status: done
     version: release-1.0
   - task: Users can do a free text search of all tasks
-
     status: done
     version: release-1.0
   - task: Users can load tasks from stdin
     status: idea
-
   - task: Users can query tasks by their date
     status: done
     version: release-1.0
-
   - task: Users can query tasks by their status
     status: done
     version: release-1.0
-
   - task: Users can query tasks by their title
     status: done
     version: release-1.0
-
   - task: Users can load tasks from yaml file
     status: done
     version: release-1.0
-
   - task: Users can output query results as cards
     status: done
     version: release-1.0
-
   - task: Users can query tasks by their tags
     status: done
     version: release-1.0
-
   - task: Users can sort tasks by their due date
     version: release-1.0
     status: done
-
   - task: Users can output query results as YAML
     status: done
     version: release-1.0
-
   - task: Users can quickly set the status of a task from the CLI
+    status: done
+    version: release-1.0
+  - task: Users can create subtasks from the CLI
     status: done
     version: release-1.0
 ---

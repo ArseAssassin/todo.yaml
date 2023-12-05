@@ -152,10 +152,10 @@ def update_task(doc, matched_tasks, filename, footer, output, updates, sorter, y
 
     save_doc(doc, footer, filename, yaml)
 
-@todo_yaml.command(name='add')
+@todo_yaml.command(name='task')
 @click.argument('task')
 @click.pass_context
-def add(ctx, task):
+def task(ctx, task):
     backup_doc(**ctx.obj)
 
     doc = ctx.obj['doc']
@@ -163,6 +163,32 @@ def add(ctx, task):
     print(f'Adding task {task}')
     added_task = { 'task': task }
     doc.append(added_task)
+
+    output_formats[ctx.obj['output']]([added_task], sys.stdout, doc, [], lambda it: it)
+
+    save_doc(doc, ctx.obj['footer'], ctx.obj['filename'], ctx.obj['yaml'])
+
+@todo_yaml.command(name='subtask')
+@click.argument('task')
+@click.pass_context
+def subtask(ctx, task):
+    backup_doc(**ctx.obj)
+
+    doc = ctx.obj['doc']
+
+    print(f'Adding task {task}')
+    added_task = { 'task': task }
+
+    matched_tasks = ctx.obj['matched_tasks']
+    matched_task = matched_tasks[0]
+
+    tasks = [] + (
+        'subtasks' in matched_task and
+        matched_task['subtasks'] or
+        []
+    ) + [added_task]
+
+    set_fields(doc, [matched_task], { 'subtasks': tasks })
 
     output_formats[ctx.obj['output']]([added_task], sys.stdout, doc, [], lambda it: it)
 
