@@ -19,6 +19,7 @@
           devShells.default = mkShell {
             packages = with python311Packages; [
               python311
+              pylint
               click
               jq
               ruyaml

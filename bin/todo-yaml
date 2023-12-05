@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")"
+cd ..
+/usr/bin/env python todo_yaml/cli.py "$@"

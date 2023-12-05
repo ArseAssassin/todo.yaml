@@ -1,65 +1,81 @@
-- name: todo.yaml
+- task: todo.yaml
 
-  description:
-    A CLI for querying and editing nested yaml documents for organizing tasks.
+  description: A CLI for querying and editing nested yaml documents for organizing
+    tasks.
 
-  tasks:
-    - name: Users can load tasks from stdin
-      status: todo
+  subtasks:
 
-    - name: Users can modify query results in a yaml file
-    - name: Users can add new tasks from CLI
-    - name: Users can define default properties for tasks in yaml header
-    - name: Users cannot see internal fields in yaml output
-    - name: Users can sort tasks by priority
-    - name: Users can limit the number of matched tasks
+  - task: Users can add new tasks from CLI
+    status: done
+    version: release-1.0
+  - task: Users can read usage instructions from CLI
+    version: release-1.0
+  - task: Users can read usage instructions from README
+    version: release-1.0
+  - task: Users can modify query results in a yaml file
+    version: release-1.0
+    status: done
+  - task: Users can define default properties for tasks in yaml header
+    status: idea
+  - task: Users cannot see internal fields in yaml output
+    status: done
+    version: release-1.0
+  - task: Users can sort tasks by priority
+    status: done
+    version: release-1.0
+  - task: Users can limit the number of matched tasks
+    status: done
+    version: release-1.0
+  - task: Users can undo last modification from the CLI
+    status: done
+    version: release-1.0
+  - task: Users can do a free text search of all tasks
 
-    - name: Users can query tasks by their date
-      status: done
-      version: release-1.0
+    status: done
+    version: release-1.0
+  - task: Users can load tasks from stdin
+    status: idea
 
-    - name: Users can query tasks by their status
-      status: done
-      version: release-1.0
+  - task: Users can query tasks by their date
+    status: done
+    version: release-1.0
 
-    - name: Users can query tasks by their title
-      status: done
-      version: release-1.0
+  - task: Users can query tasks by their status
+    status: done
+    version: release-1.0
 
-    - name: Users can load tasks from yaml file
-      status: done
-      version: release-1.0
+  - task: Users can query tasks by their title
+    status: done
+    version: release-1.0
 
-    - name: Users can output query results as cards
-      status: done
-      version: release-1.0
+  - task: Users can load tasks from yaml file
+    status: done
+    version: release-1.0
 
-    - name: Users can query tasks by their tags
-      status: done
-      version: release-1.0
+  - task: Users can output query results as cards
+    status: done
+    version: release-1.0
 
-    - name: Users can sort tasks by their due date
-      version: release-1.0
-      status: done
+  - task: Users can query tasks by their tags
+    status: done
+    version: release-1.0
 
-    - name: Users can output query results as YAML
-      status: done
-      version: release-1.0
+  - task: Users can sort tasks by their due date
+    version: release-1.0
+    status: done
 
+  - task: Users can output query results as YAML
+    status: done
+    version: release-1.0
+
+  - task: Users can quickly set the status of a task from the CLI
+    status: done
+    version: release-1.0
 ---
 
-default_properties:
-  status: todo
-
 views:
-  default_fields:
-    - name
-    - description
-    - status
-    - version
-
   default:
-    query: .status != "done" and .version == "release-1.0"
+    query: .status != "done" and .status != "idea"
 
   todo:
     query: .status == "todo"
@@ -75,9 +91,4 @@ views:
 
   release-1.0:
     query: .version == "release-1.0"
-
-  tag-test:
-    query: .tags | index("test")
-    fields:
-      - tags
 
