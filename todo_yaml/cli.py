@@ -75,9 +75,14 @@ def todo_yaml(ctx, filename, where, id, number_of_tasks, search_by, sort_by, out
             ])
 
     where = list(where)
+    where = flatten_list([
+        q.startswith('#') and q or
+        q.split('/')
+        for q in where
+    ])
 
     if not where:
-        where = ['#default']
+        where = ['default']
 
     # if id:
     #     where = 'true'
@@ -85,8 +90,8 @@ def todo_yaml(ctx, filename, where, id, number_of_tasks, search_by, sort_by, out
         where += [f'select(.[] | type == "string" and (ascii_downcase|contains("{search_by}")))']
 
     where = flatten_list([
-        q.startswith('#') and
-        normalize_view_layer(footer['views'][q[1:]]['where']) or [q]
+        q.startswith('#') and [q[1:]] or
+        normalize_view_layer(footer['views'][q]['where'])
         for q in where
     ])
 
