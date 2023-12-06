@@ -1,19 +1,12 @@
-try:
-    from setuptools import setup
-except:
-    from distutils.core import setup
+#!/usr/bin/env python
 
-config = {
-    'description': 'todo.yaml is a CLI for managing task lists in YAML',
-    'author': 'Tuomas Kanerva',
-    'url': 'No URL',
-    'download_url': 'Just local',
-    'author_email': 'tuomas@kanerva.info',
-    'version': '1.0',
-    'install_requires': [],
-    'packages': ['todo_yaml'],
-    'scripts': ['bin/todo-yaml'],
-    'name': 'todo_yaml'
-}
+from setuptools import setup, find_packages
 
-setup(**config)
+setup(
+    name='todo-yaml',
+    version='0.1.0',
+    packages=find_packages(),
+    entry_points={
+        'console_scripts': ['todo-yaml = todo_yaml.cli:todo_yaml']
+    }
+)

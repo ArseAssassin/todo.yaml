@@ -4,9 +4,9 @@ import click
 from ruyaml import YAML
 import jq as jq_query
 
-from todoCards import dumpCards
+from todo_yaml.todoCards import dumpCards
 
-from task_fields import getTaskValue, matchTaskId
+from todo_yaml.task_fields import getTaskValue, matchTaskId
 
 default_file_paths = [
     os.path.join(os.getcwd(), 'todo.yaml'),
@@ -160,7 +160,6 @@ def task(ctx, task):
 
     doc = ctx.obj['doc']
 
-    print(f'Adding task {task}')
     added_task = { 'task': task }
     doc.append(added_task)
 
@@ -170,14 +169,17 @@ def task(ctx, task):
 
 @todo_yaml.command(name='subtask')
 @click.argument('task')
+@click.argument('values', nargs=-1)
 @click.pass_context
-def subtask(ctx, task):
+def subtask(ctx, task, values):
     backup_doc(**ctx.obj)
 
     doc = ctx.obj['doc']
 
-    print(f'Adding task {task}')
-    added_task = { 'task': task }
+    added_task = {
+        values[i]: values[i+1] for i in range(0, len(values), 2)
+    }
+    added_task['task'] = task
 
     matched_tasks = ctx.obj['matched_tasks']
     matched_task = matched_tasks[0]

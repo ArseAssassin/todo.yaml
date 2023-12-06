@@ -1,7 +1,7 @@
 import re
 from colorama import just_fix_windows_console, Style
 
-from task_fields import getTaskValue, taskIsDone
+from todo_yaml.task_fields import getTaskValue, taskIsDone
 
 def dumpCards(matchedTasks, output, doc, fields, sorter):
     def is_allowed_field(field):

@@ -1,3 +1,4 @@
-from cli import todo_yaml
+if __name__ == '__main__':
+    import todo_yaml.cli
 
-todo_yaml()
+    todo_yaml.cli.todo_yaml()

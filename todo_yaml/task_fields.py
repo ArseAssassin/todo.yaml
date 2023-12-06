@@ -1,6 +1,8 @@
+import hashlib
+
 defaultValues = {
     'status': lambda it: '',
-    'id': lambda it: 'id' in it and it['id'] or hex(hash(it['task']))[3:]
+    'id': lambda it: 'id' in it and it['id'] or hashlib.sha1(it['task'].encode('utf-8')).hexdigest()[3:]
 }
 
 def getTaskValue(task, key):

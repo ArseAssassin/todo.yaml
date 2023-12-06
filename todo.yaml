@@ -63,6 +63,8 @@
   - task: Users can create subtasks from the CLI
     status: done
     version: release-1.0
+  - state: todo
+    task: Users can install the CLI as a Nix flake
 ---
 
 views:
