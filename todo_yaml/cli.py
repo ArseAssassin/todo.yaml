@@ -30,7 +30,7 @@ def flatten_list(l):
     return [item for sublist in l for item in sublist]
 
 def normalize_view_layer(it):
-    if type(it) == list:
+    if type(it) != str:
         return it
     else:
         return [it]
@@ -80,12 +80,9 @@ def todo_yaml(ctx, filename, where, id, number_of_tasks, search_by, sort_by, out
         q.split('/')
         for q in where
     ])
-
     if not where:
         where = ['default']
 
-    # if id:
-    #     where = 'true'
     if search_by:
         where += [f'select(.[] | type == "string" and (ascii_downcase|contains("{search_by}")))']
 
@@ -94,6 +91,7 @@ def todo_yaml(ctx, filename, where, id, number_of_tasks, search_by, sort_by, out
         normalize_view_layer(footer['views'][q]['where'])
         for q in where
     ])
+
 
     for task in jq_query.compile('.. | select(type == "object" and has("date") and has("repeat") and .status == "done" and (.date | fromdateiso8601 < now))').input_value(doc).all():
         set_fields(doc, [task], reschedule_task(task))
