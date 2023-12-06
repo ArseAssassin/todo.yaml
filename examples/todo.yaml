@@ -1,7 +1,9 @@
-- name: ( ) Add list of todo items to this file
-- name: (x) Start keeping track of tasks with todo.yaml
+- task: Add list of todo items to this file
+- task: Start keeping track of tasks with todo.yaml
+  status: done
 
 ---
+
 views:
   default:
-    query: .name | startswith("( )")
+    where: .status != "done"

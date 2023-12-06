@@ -23,12 +23,15 @@
             #   python -mpip install -r requirements.txt
             #   export PATH="${self}/bin:$PATH"
             # '';
-            packages = [
+            packages = with python311Packages; [
               python311
-              python311Packages.click
-              python311Packages.colorama
-              python311Packages.ruyaml
-              python311Packages.jq
+              python-dateutil
+              pylint
+              click
+              colorama
+              ruyaml
+              jq
+              pytz
             ];
           };
 
@@ -36,10 +39,12 @@
             todo-yaml = python311Packages.buildPythonApplication {
               propagatedBuildInputs = [
                 (python311.withPackages (ps: with ps; [
+                  python-dateutil
                   click
                   colorama
                   ruyaml
                   jq
+                  pytz
                 ]))
               ];
 

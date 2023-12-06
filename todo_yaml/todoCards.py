@@ -1,7 +1,27 @@
-import re
-from colorama import just_fix_windows_console, Style
+import re, datetime
+from colorama import just_fix_windows_console, Style, Fore
+import pytz
 
-from todo_yaml.task_fields import getTaskValue, taskIsDone
+from todo_yaml.task_fields import getTaskValue, taskIsDone, task_date
+
+def danger(s):
+    return Fore.RED + s + Style.RESET_ALL
+
+def brighten(s):
+    return Style.BRIGHT + s + Style.RESET_ALL
+
+def dim(s):
+    return Style.DIM + s + Style.RESET_ALL
+
+def stripAnsiCodes(line):
+    ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
+    return ansi_escape.sub('', line)
+
+def ansiLen(s):
+    return len(stripAnsiCodes(s))
+
+def ansiLjust(s, width):
+    return s + ' ' * (width - ansiLen(s))
 
 def dumpCards(matchedTasks, output, doc, fields, sorter):
     def is_allowed_field(field):
@@ -40,22 +60,6 @@ def dumpCards(matchedTasks, output, doc, fields, sorter):
             task['subtasks'] = childMatches
             return task
 
-    def brighten(s):
-        return Style.BRIGHT + s + Style.RESET_ALL
-
-    def dim(s):
-        return Style.DIM + s + Style.RESET_ALL
-
-    def stripAnsiCodes(line):
-        ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
-        return ansi_escape.sub('', line)
-
-    def ansiLen(s):
-        return len(stripAnsiCodes(s))
-
-    def ansiLjust(s, width):
-        return s + ' ' * (width - ansiLen(s))
-
     def formatCards(cards):
         output = []
         for card in cards:
@@ -76,7 +80,12 @@ def dumpCards(matchedTasks, output, doc, fields, sorter):
         'id': lambda card: ('ID', card['id']),
         'status': lambda card: ('Status', formatCardStatus(card)),
         'version': lambda card: ('Version', card['version']),
-        'date': lambda card: ('Date', card['date']),
+        'date': lambda card: ('Date',
+            not taskIsDone(card) and (
+                task_date(card) < pytz.utc.localize(datetime.datetime.now()) and
+                        danger(card['date']))
+            or card['date']
+        ),
         'name': lambda card: (),
         'subtasks': lambda card: (),
         'task': lambda card: (),
@@ -101,7 +110,7 @@ def dumpCards(matchedTasks, output, doc, fields, sorter):
 
             for key in card:
                 if is_allowed_field(key) and key not in cardBodyHandlers:
-                    lines.append((key, card[key]))
+                    lines.append((key.title(), card[key]))
 
         if 'subtasks' in card:
             lines.append((formatCards(card['subtasks']),))

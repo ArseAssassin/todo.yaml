@@ -1,8 +1,12 @@
+import base64
 import hashlib
+import dateutil.parser
+import pytz
 
 defaultValues = {
     'status': lambda it: '',
-    'id': lambda it: 'id' in it and it['id'] or hashlib.sha1(it['task'].encode('utf-8')).hexdigest()[3:]
+    'id': lambda it: 'id' in it and it['id'] or \
+        base64.b32encode(hashlib.sha1(it['task'].encode('utf-8')).digest()).decode('utf-8').lower()
 }
 
 def getTaskValue(task, key):
@@ -22,3 +26,6 @@ def getTaskId(task):
 
 def matchTaskId(task, id):
     return getTaskId(task).startswith(id)
+
+def task_date(task):
+    return dateutil.parser.isoparse(task['date'])

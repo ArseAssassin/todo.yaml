@@ -65,24 +65,30 @@
     version: release-1.0
   - state: todo
     task: Users can install the CLI as a Nix flake
+    status: done
+  - task: Users can mark tasks as repeating
+    status: done
+  - task: Users can query tasks with long text without command line boxes breaking
+  - task: Users can init default todo.yaml file from the CLI
+  - task: Users can remove tasks from the CLI
 ---
 
 views:
   default:
-    query: .status != "done" and .status != "idea"
+    where: .status != "done" and .status != "idea"
 
   todo:
-    query: .status == "todo"
+    where: .status == "todo"
 
   done:
-    query: .status == "done"
+    where: .status == "done"
 
   wip:
-    query: .status == "wip"
+    where: .status == "wip"
 
   testing:
-    query: .status == "testing"
+    where: .status == "testing"
 
   release-1.0:
-    query: .version == "release-1.0"
+    where: .version == "release-1.0"
 

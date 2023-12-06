@@ -1,12 +1,17 @@
-import sys, json, os, tempfile, shutil
+import sys, json, os, tempfile, shutil, datetime, pytz
 
 import click
 from ruyaml import YAML
 import jq as jq_query
 
+from dateutil.relativedelta import relativedelta
+import dateutil.parser
+
 from todo_yaml.todoCards import dumpCards
 
-from todo_yaml.task_fields import getTaskValue, matchTaskId
+from todo_yaml.task_fields import getTaskValue, matchTaskId, task_date, taskIsDone
+
+from todo_yaml import todo_yaml as ty
 
 default_file_paths = [
     os.path.join(os.getcwd(), 'todo.yaml'),
@@ -21,17 +26,25 @@ output_formats = {
 
 undo_file = os.path.join(tempfile.gettempdir(), 'undo.todo.yaml')
 
+def flatten_list(l):
+    return [item for sublist in l for item in sublist]
+
+def normalize_view_layer(it):
+    if type(it) == list:
+        return it
+    else:
+        return [it]
+
 @click.group(invoke_without_command=True)
 @click.option('-f', '--filename', type=click.Path(), help='yaml file to use')
-@click.option('-w', '--where', help='jq query used to match tasks')
-@click.option('-v', '--view', help='runs a query stored in views section of your yaml file', multiple=True)
+@click.option('-w', '--where', default=[], help='jq query used to match tasks', multiple=True)
 @click.option('-i', '--id', type=str, help='yaml file to use')
 @click.option('-n', '--number-of-tasks', default=None, help='yaml file to use')
 @click.option('-s', '--search-by', default='', help='yaml file to use')
 @click.option('-t', '--sort-by', default=[], help='yaml file to use', multiple=True)
 @click.option('-o', '--output', default='cards', help='file format to output results in')
 @click.pass_context
-def todo_yaml(ctx, filename, where, view, id, number_of_tasks, search_by, sort_by, output):
+def todo_yaml(ctx, filename, where, id, number_of_tasks, search_by, sort_by, output):
     yaml = YAML()
 
     footer = {}
@@ -47,11 +60,8 @@ def todo_yaml(ctx, filename, where, view, id, number_of_tasks, search_by, sort_b
     with open(filename, 'r', encoding='utf-8') as input_file:
         docs = list(yaml.load_all(input_file))
 
-    if len(docs) == 1:
-        doc = docs[0]
-    else:
-        footer = docs[1]
-        doc = docs[0]
+    doc = ty.get_body(docs)
+    footer = ty.get_footer(docs)
 
     sorter = lambda it: it
 
@@ -64,23 +74,28 @@ def todo_yaml(ctx, filename, where, view, id, number_of_tasks, search_by, sort_b
                     for field in sort_by
             ])
 
-    if id:
-        where = 'true'
-    elif search_by:
-        where = f'select(.[] | type == "string" and (ascii_downcase|contains("{search_by}")))'
+    where = list(where)
 
     if not where:
-        if not view:
-            if 'views' not in footer:
-                where = '.status != "done"'
-            else:
-                selected_view = footer['views']['default']
-                where = selected_view['query']
-        else:
-            selected_views = [footer['views'][q] for q in view]
-            where = ' and '.join([selected_view['query'] for selected_view in selected_views])
+        where = ['#default']
 
-    matched_tasks = jq_query.compile(f'.. | select(type == "object" and ({where}))').input_value(doc).all()
+    # if id:
+    #     where = 'true'
+    if search_by:
+        where += [f'select(.[] | type == "string" and (ascii_downcase|contains("{search_by}")))']
+
+    where = flatten_list([
+        q.startswith('#') and
+        normalize_view_layer(footer['views'][q[1:]]['where']) or [q]
+        for q in where
+    ])
+
+    for task in jq_query.compile('.. | select(type == "object" and has("date") and has("repeat") and .status == "done" and (.date | fromdateiso8601 < now))').input_value(doc).all():
+        set_fields(doc, [task], reschedule_task(task))
+
+    matched_tasks = jq_query.compile(
+        ' | '.join([ty.prepare_query(part) for part in where])
+    ).input_value(doc).all()
 
     if id:
         matched_tasks = list(filter(lambda task: matchTaskId(task, id), matched_tasks))
@@ -145,8 +160,7 @@ def update_task(doc, matched_tasks, filename, footer, output, updates, sorter, y
     set_fields(doc, matched_tasks, updates)
 
     for task in matched_tasks:
-        for key, value in updates.items():
-            task[key] = value
+        update_task_values(task, updates)
 
     output_formats[output](matched_tasks, sys.stdout, doc, [], sorter)
 
@@ -211,11 +225,45 @@ def save_doc(doc, footer, filename, yaml):
 def set_fields(tasks, matched_tasks, values):
     for task in tasks:
         if task in matched_tasks:
-            for key in values:
-                task[key] = values[key]
+            update_task_values(task, values)
 
         if 'subtasks' in task:
             set_fields(task['subtasks'], matched_tasks, values)
+
+def update_task_values(task, values):
+    for key, value in values.items():
+        task[key] = value
+        if value is None:
+            del task[key]
+
+repetition_cycles = {
+    'daily': relativedelta(days = 1),
+    'weekly': relativedelta(weeks = 1),
+    'biweekly': relativedelta(weeks = 1),
+    'monthly': relativedelta(months = 1),
+    'monthly': relativedelta(months = 1),
+    'annually': relativedelta(years = 1),
+}
+
+def reschedule_task(task):
+    d = {}
+
+    next_date = task_next_date(task_date(task), task['repeat'])
+
+    if taskIsDone(task):
+        d['status'] = None
+
+    d['date'] = next_date.isoformat().replace('+00:00', 'Z')
+
+    return d
+
+def task_next_date(date, repeat):
+    next_date = date + repetition_cycles[repeat]
+
+    if next_date < pytz.utc.localize(datetime.datetime.now()):
+        return task_next_date(next_date, repeat)
+    else:
+        return next_date
 
 class Reversor:
     def __init__(self, obj):
